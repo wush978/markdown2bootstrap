@@ -34,19 +34,19 @@ converter.hooks.set("postConversion", function(text) {
         var i, levelStr = "";
 
         levels[p1] = levels[p1] || 0;
-        
+
         // Figure out section number
 	if (!argv.n) {
             // reset lower levels
             for (i = Number(p2) + 1; levels["h"+i]; i++) {
                 levels["h"+i] = 0;
             }
-	
+
             // grab higher levels
             for (i = Number(p2) - 1; levels["h"+i]; i--) {
                 levelStr = levels["h"+i] + "." + levelStr;
             }
-        
+
             levels[p1] = levels[p1] + 1;
             levelStr = levelStr + levels[p1] + ". ";
         }
@@ -73,7 +73,7 @@ if (!fs.existsSync(argv.outputdir)) {
 }
 
 argv._.forEach(function(md_path) {
-    var tags = { title: "TITLE HERE", subtitle: "SUBTITLE HERE" },
+    var tags = { title: "TITLE HERE", subtitle: "SUBTITLE HERE" , "header-title": "HEADER TITLE HERE" },
         md, output, tocHtml = "",
         output_path = path.join(argv.outputdir, path.basename(md_path));
 
@@ -89,6 +89,8 @@ argv._.forEach(function(md_path) {
     // Find title and subtitle tags in document
     findTag(md, "title", tags);
     findTag(md, "subtitle", tags);
+    findTag(md, "header-title", tags);
+    debugger;
 
     levels = {}; nextId = 0; toc = [];
     output = converter.makeHtml(md);
@@ -101,7 +103,8 @@ argv._.forEach(function(md_path) {
     tocHtml += '</ul></div><div class="span9">';
 
     // Bootstrap-fy
-    output = 
+    debugger;
+    output =
         top_part.replace(/\{\{header\}\}/, function() {
             if (argv.h) {
                 return '<header class="jumbotron subhead" id="overview">' +
@@ -112,7 +115,7 @@ argv._.forEach(function(md_path) {
             } else {
                 return "";
             }
-        }).replace(/\{\{title\}\}/, tags.title === "TITLE HERE" ? "" : tags.title) +
+        }).replace(/\{\{title\}\}/, tags["header-title"] === "TITLE HERE" ? "" : tags["header-title"]) +
         tocHtml +
         output +
         bottom_part;
