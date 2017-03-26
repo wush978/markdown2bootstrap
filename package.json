@@ -8,17 +8,19 @@
     "url": "git://github.com/renier/markdown2bootstrap.git"
   },
   "keywords": [
-    "markdown", "bootstrap"
+    "markdown",
+    "bootstrap"
   ],
   "license": "MIT",
   "bugs": "http://github.com/renier/markdown2bootstrap/issues",
   "homepage": "http://github.com/renier/markdown2bootstrap",
   "bin": "./markdown2bootstrap.js",
   "dependencies": {
+    "optimist": "0.3.x",
     "pagedown": "1.0.x",
-    "optimist": "0.3.x"
+    "underscore": "^1.8.3"
   },
-  "files": [ 
+  "files": [
     "bootstrap",
     "LICENSE",
     "markdown2bootstrap.js",

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /*jshint node:true, es5:true */
+const _ = require('underscore');
 var argv = require('optimist').
         usage('Usage: $0 [options] <doc.md ...>').
         demand(1).
@@ -9,6 +10,8 @@ var argv = require('optimist').
         describe('h', 'Turn on bootstrap page header.').
         describe('outputdir', 'Directory to put the converted files in.').
         default('outputdir', '.').
+        describe('nav', 'JSON file of nav bar').
+        default('nav', null).
         argv,
     pagedown = require('pagedown'),
     converter = new pagedown.Converter(),
@@ -17,6 +20,11 @@ var argv = require('optimist').
     top_part = fs.readFileSync(__dirname + "/parts/top.html").toString(),
     bottom_part = fs.readFileSync(__dirname + "/parts/bottom.html").toString(),
     levels, toc, nextId;
+debugger;
+var nav = null;
+if (argv.nav) {
+  nav = require(argv.nav);
+}
 
 function findTag(md, tag, obj) {
     var re = new RegExp("^<!-- " + tag + ": (.+) -->", "m"), match = md.match(re);
@@ -73,7 +81,7 @@ if (!fs.existsSync(argv.outputdir)) {
 }
 
 argv._.forEach(function(md_path) {
-    var tags = { title: "TITLE HERE", subtitle: "SUBTITLE HERE" , "header-title": "HEADER TITLE HERE" },
+    var tags = { title: "TITLE HERE", subtitle: "SUBTITLE HERE" , "header-title": "HEADER TITLE HERE", icon: "ICON HERE" },
         md, output, tocHtml = "",
         output_path = path.join(argv.outputdir, path.basename(md_path));
 
@@ -90,7 +98,7 @@ argv._.forEach(function(md_path) {
     findTag(md, "title", tags);
     findTag(md, "subtitle", tags);
     findTag(md, "header-title", tags);
-    debugger;
+    findTag(md, "icon", tags);
 
     levels = {}; nextId = 0; toc = [];
     output = converter.makeHtml(md);
@@ -102,8 +110,21 @@ argv._.forEach(function(md_path) {
     });
     tocHtml += '</ul></div><div class="span9">';
 
+    // nav
+    var nav_part = "";
+    if (nav) {
+      nav_part = '<div class="container"><ul class="nav nav-tabs">';
+      current_k = output_path.substring(output_path.lastIndexOf('/')+1);
+      nav_part += _.map(nav, function(v, k) {
+        if (current_k === v) {
+          return '<li class="active"><a href="#"><h1>' + k + '</h1></a></li>';
+        } else {
+          return '<li><a href="' + v + '"><h1 style="color: #0088cc;">' + k + '</h1></a></li>';
+        }
+      }).join("");
+      nav_part += '</ul></div>';
+    }
     // Bootstrap-fy
-    debugger;
     output =
         top_part.replace(/\{\{header\}\}/, function() {
             if (argv.h) {
@@ -115,7 +136,10 @@ argv._.forEach(function(md_path) {
             } else {
                 return "";
             }
-        }).replace(/\{\{title\}\}/, tags["header-title"] === "TITLE HERE" ? "" : tags["header-title"]) +
+        }).
+        replace(/\{\{title\}\}/, tags["header-title"] === "TITLE HERE" ? "" : tags["header-title"]).
+        replace(/\{\{icon\}\}/, tags["icon"] === "ICON HERE" ? "" : tags["icon"]) +
+        nav_part +
         tocHtml +
         output +
         bottom_part;
