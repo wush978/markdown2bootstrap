@@ -20,7 +20,6 @@ var argv = require('optimist').
     top_part = fs.readFileSync(__dirname + "/parts/top.html").toString(),
     bottom_part = fs.readFileSync(__dirname + "/parts/bottom.html").toString(),
     levels, toc, nextId;
-debugger;
 var nav = null;
 if (argv.nav) {
   nav = require(argv.nav);
@@ -102,11 +101,12 @@ argv._.forEach(function(md_path) {
 
     levels = {}; nextId = 0; toc = [];
     output = converter.makeHtml(md);
-
     // Add table of contents
     tocHtml += '<div class="span3 bs-docs-sidebar"><ul class="nav nav-list bs-docs-sidenav" data-spy="affix">';
     toc.forEach(function(entry) {
-        tocHtml += '<li><a href="#' + entry.id + '">' + entry.levelStr + entry.title + '</a></li>';
+      tocHtml += '<li><a href="#' + entry.id + '">' + entry.levelStr + entry.title + '</a></li>';
+      var re = new RegExp('<a href="#' + entry.title + '">' + entry.title + '</a>', 'g');
+      output = output.replace(re, '<a href="#' + entry.id + '">' + entry.title + '</a>');
     });
     tocHtml += '</ul></div><div class="span9">';
 
