@@ -117,9 +117,9 @@ argv._.forEach(function(md_path) {
       current_k = output_path.substring(output_path.lastIndexOf('/')+1);
       nav_part += _.map(nav, function(v, k) {
         if (current_k === v) {
-          return '<li class="active"><a href="#"><h1>' + k + '</h1></a></li>';
+          return '<li class="active"><a href="#"><h5>' + k + '</h5></a></li>';
         } else {
-          return '<li><a href="' + v + '"><h1 style="color: #0088cc;">' + k + '</h1></a></li>';
+          return '<li><a href="' + v + '"><h5 style="color: #0088cc;">' + k + '</h5></a></li>';
         }
       }).join("");
       nav_part += '</ul></div>';
