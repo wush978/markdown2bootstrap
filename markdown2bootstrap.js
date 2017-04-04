@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /*jshint node:true, es5:true */
 const _ = require('underscore');
+const assert = require('assert');
 var argv = require('optimist').
         usage('Usage: $0 [options] <doc.md ...>').
         demand(1).
@@ -25,15 +26,47 @@ if (argv.nav) {
   nav = require(argv.nav);
 }
 
-function findTag(md, tag, obj) {
+function findTag(md, tag, obj, parse) {
     var re = new RegExp("^<!-- " + tag + ": (.+) -->", "m"), match = md.match(re);
 
     if (!obj) { return; }
 
     if (match) {
+      if (parse) {
+        obj[tag] = JSON.parse(match[1]);
+      } else {
         obj[tag] = match[1];
+      }
     }
 }
+
+function getTag(tag, close = false) {
+  return function(items) {
+    assert(_.isArray(items));
+    return _.map(items, function(item) {
+      var result = "<" + tag;
+      _.forEach(item, function(v, k) {
+        if (v) {
+          assert(_.isString(v));
+          result += ' ' + k + '="' + v + '"';
+        } else {
+          result += ' ' + k;
+        }
+      });
+      result += ">";
+      if (close) result += "</" + tag + ">";
+      if (close) {
+        if (result === "<" + tag + "></" + tag + ">") result = "";
+      } else {
+        if (result === "<" + tag + ">") result = "";
+      }
+      return result;
+    }).
+    join("\n");
+  };
+}
+
+var getMeta = getTag("meta"), getLink = getTag("link"), getScript = getTag("script", true);
 
 // Configure section and toc generation
 converter.hooks.set("postConversion", function(text) {
@@ -80,7 +113,15 @@ if (!fs.existsSync(argv.outputdir)) {
 }
 
 argv._.forEach(function(md_path) {
-    var tags = { title: "TITLE HERE", subtitle: "SUBTITLE HERE" , "header-title": "HEADER TITLE HERE", icon: "ICON HERE" },
+    var tags = {
+      title: "TITLE HERE",
+      subtitle: "SUBTITLE HERE" ,
+      "header-title": "HEADER TITLE HERE",
+      icon: "ICON HERE",
+      "scripts" : [],
+      "header-meta" : [],
+      "header-link" : []
+    },
         md, output, tocHtml = "",
         output_path = path.join(argv.outputdir, path.basename(md_path));
 
@@ -98,6 +139,9 @@ argv._.forEach(function(md_path) {
     findTag(md, "subtitle", tags);
     findTag(md, "header-title", tags);
     findTag(md, "icon", tags);
+    findTag(md, "scripts", tags, true);
+    findTag(md, "header-meta", tags, true);
+    findTag(md, "header-link", tags, true);
 
     levels = {}; nextId = 0; toc = [];
     output = converter.makeHtml(md);
@@ -125,6 +169,7 @@ argv._.forEach(function(md_path) {
       nav_part += '</ul></div>';
     }
     // Bootstrap-fy
+    debugger;
     output =
         top_part.replace(/\{\{header\}\}/, function() {
             if (argv.h) {
@@ -137,12 +182,16 @@ argv._.forEach(function(md_path) {
                 return "";
             }
         }).
+        replace(/\{\{header-meta\}\}/, tags["header-meta"].length > 0 ? getMeta(tags["header-meta"]) : "").
+        replace(/\{\{header-link\}\}/, tags["header-link"].length > 0 ? getLink(tags["header-link"]) : "").
         replace(/\{\{title\}\}/, tags["header-title"] === "TITLE HERE" ? "" : tags["header-title"]).
         replace(/\{\{icon\}\}/, tags["icon"] === "ICON HERE" ? "" : tags["icon"]) +
+
         nav_part +
         tocHtml +
         output +
-        bottom_part;
+        bottom_part.
+          replace(/\{\{scripts\}\}/, tags["scripts"].length > 0 ? getScript(tags["scripts"]) : "");
 
     fs.writeFileSync(output_path, output);
     console.log("Converted " + md_path + " to " + path.relative(process.cwd(), output_path));
