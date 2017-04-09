@@ -27,15 +27,23 @@ if (argv.nav) {
 }
 
 function findTag(md, tag, obj, parse) {
-    var re = new RegExp("^<!-- " + tag + ": (.+) -->", "m"), match = md.match(re);
+    var re = new RegExp("^<!-- " + tag + ": (.+) -->", "m");
+    var matches = _.chain(md.split("\n")).
+      map(function(x) {
+        return x.match(re);
+      }).
+      filter(function(x) {return x;}).
+      value();
 
     if (!obj) { return; }
 
-    if (match) {
+    if (matches.length > 0) {
       if (parse) {
-        obj[tag] = JSON.parse(match[1]);
+        _.map(matches, function(match) {
+          obj[tag] = obj[tag].concat(JSON.parse(match[1]));
+        });
       } else {
-        obj[tag] = match[1];
+        obj[tag] = matches[0][1];
       }
     }
 }
@@ -169,7 +177,6 @@ argv._.forEach(function(md_path) {
       nav_part += '</ul></div>';
     }
     // Bootstrap-fy
-    debugger;
     output =
         top_part.replace(/\{\{header\}\}/, function() {
             if (argv.h) {
