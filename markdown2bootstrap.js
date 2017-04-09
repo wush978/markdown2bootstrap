@@ -154,7 +154,8 @@ argv._.forEach(function(md_path) {
     levels = {}; nextId = 0; toc = [];
     output = converter.makeHtml(md);
     // Add table of contents
-    tocHtml += '<div class="span3 bs-docs-sidebar"><ul class="nav nav-list bs-docs-sidenav" data-spy="affix">';
+    // tocHtml += '<div class="span3 bs-docs-sidebar"><ul class="nav nav-list bs-docs-sidenav" data-spy="affix">';
+    tocHtml += '<div class="span3 bs-docs-sidebar"><ul id="affix-toc" class="nav nav-list bs-docs-sidenav">';
     toc.forEach(function(entry) {
       tocHtml += '<li><a href="#' + entry.id + '">' + entry.levelStr + entry.title + '</a></li>';
       var re = new RegExp('<a href="#' + entry.title + '">' + entry.title + '</a>', 'g');
@@ -201,5 +202,6 @@ argv._.forEach(function(md_path) {
           replace(/\{\{scripts\}\}/, tags["scripts"].length > 0 ? getScript(tags["scripts"]) : "");
 
     fs.writeFileSync(output_path, output);
+    console.log(output);
     console.log("Converted " + md_path + " to " + path.relative(process.cwd(), output_path));
 });
