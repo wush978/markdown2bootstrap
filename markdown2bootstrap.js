@@ -202,6 +202,5 @@ argv._.forEach(function(md_path) {
           replace(/\{\{scripts\}\}/, tags["scripts"].length > 0 ? getScript(tags["scripts"]) : "");
 
     fs.writeFileSync(output_path, output);
-    console.log(output);
     console.log("Converted " + md_path + " to " + path.relative(process.cwd(), output_path));
 });
