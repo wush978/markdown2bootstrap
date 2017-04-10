@@ -155,18 +155,18 @@ argv._.forEach(function(md_path) {
     output = converter.makeHtml(md);
     // Add table of contents
     // tocHtml += '<div class="span3 bs-docs-sidebar"><ul class="nav nav-list bs-docs-sidenav" data-spy="affix">';
-    tocHtml += '<div class="span3 bs-docs-sidebar"><ul id="affix-toc" class="nav nav-list bs-docs-sidenav">';
+    tocHtml += '<div class="col-md-2 bs-docs-sidebar"><ul id="affix-toc" class="nav nav-list bs-docs-sidenav">';
     toc.forEach(function(entry) {
       tocHtml += '<li><a href="#' + entry.id + '">' + entry.levelStr + entry.title + '</a></li>';
       var re = new RegExp('<a href="#' + entry.title + '">' + entry.title + '</a>', 'g');
       output = output.replace(re, '<a href="#' + entry.id + '">' + entry.title + '</a>');
     });
-    tocHtml += '</ul></div><div class="span9">';
+    tocHtml += '</ul></div>';
 
     // nav
     var nav_part = "";
     if (nav) {
-      nav_part = '<div class="container"><ul class="nav nav-tabs">';
+      nav_part = '<div id="top-navbar" class="navbar-default"><ul class="nav nav-tabs">';
       current_k = output_path.substring(output_path.lastIndexOf('/')+1);
       nav_part += _.map(nav, function(v, k) {
         if (current_k === v) {
@@ -177,27 +177,28 @@ argv._.forEach(function(md_path) {
       }).join("");
       nav_part += '</ul></div>';
     }
+
+    var header = '';
+    if (argv.h) {
+      header =
+        '<div class="jumbotron subhead" style="text-align:center;"><div class="container">' +
+        '<h1>' + tags.title  + '</h1>' +
+        '<p class="lead">' + tags.subtitle + '</p>' +
+        '</div></div>';
+    }
     // Bootstrap-fy
     output =
-        top_part.replace(/\{\{header\}\}/, function() {
-            if (argv.h) {
-                return '<header class="jumbotron subhead" id="overview">' +
-                       '<div class="container">' +
-                       '<h1>' + tags.title  + '</h1>' +
-                       '<p class="lead">' + tags.subtitle + '</p>' +
-                       '</div></header>';
-            } else {
-                return "";
-            }
-        }).
+        top_part.
         replace(/\{\{header-meta\}\}/, tags["header-meta"].length > 0 ? getMeta(tags["header-meta"]) : "").
         replace(/\{\{header-link\}\}/, tags["header-link"].length > 0 ? getLink(tags["header-link"]) : "").
         replace(/\{\{title\}\}/, tags["header-title"] === "TITLE HERE" ? "" : tags["header-title"]).
         replace(/\{\{icon\}\}/, tags["icon"] === "ICON HERE" ? "" : tags["icon"]) +
-
         nav_part +
+        header +
         tocHtml +
+        '<div id="main-content" class="container col-md-9">' +
         output +
+        '</div>' +
         bottom_part.
           replace(/\{\{scripts\}\}/, tags["scripts"].length > 0 ? getScript(tags["scripts"]) : "");
 
